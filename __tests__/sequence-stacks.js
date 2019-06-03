@@ -4,27 +4,28 @@ const test = require('ava');
 
 const sequenceStacks = require('../lib/sequence-stacks');
 
-const countDependsOn = function (rootResources) {
-  return Object.keys(rootResources).filter(resourceName => rootResources[resourceName].DependsOn).length
+const countDependsOn = function (resources) {
+  return Object.keys(resources).filter(resourceName => resources[resourceName].DependsOn).length
 };
 
-const doesNotBecomeCircular = function (rootResources) {
+
+const doesNotBecomeCircular = function (resources, t) {
   const memo = {};
 
-  Object.keys(rootResources).forEach(resourceName => {
-    const resource = rootResources[resourceName];
+  Object.keys(resources).forEach(resourceName => {
+    const resource = resources[resourceName];
     if (resource.DependsOn) {
       resource.DependsOn.forEach(parent => {
         if (!memo[parent]) {
-          memo[parent] = 1;
+          memo[parent] = [resourceName];
         } else {
-          memo[parent]++;
+          memo[parent].push(resourceName);
         }
       });
     }
   });
 
-  return Object.keys(memo).every(parentName => memo[parentName] <= 1);
+  return Object.keys(memo).every(parentName => memo[parentName].length <= 1);
 };
 
 test.beforeEach(t => {
@@ -38,29 +39,29 @@ test.beforeEach(t => {
     provider: {},
     getStackName: () => 'test',
     nestedStacks: {
-      stack1: {},
-      stack2: {},
-      stack3: {},
-      stack4: {},
-      stack5: {},
-      stack6: {},
-      stack7: {},
-      stack8: {},
-      stack9: {},
-      stack10: {}
+      '1NestedStack': {},
+      '2NestedStack': {},
+      '3NestedStack': {},
+      '4NestedStack': {},
+      '5NestedStack': {},
+      '6NestedStack': {},
+      '7NestedStack': {},
+      '8NestedStack': {},
+      '9NestedStack': {},
+      '10NestedStack': {}
     },
     rootTemplate: {
       Resources: {
-        stack1: {},
-        stack2: {},
-        stack3: {},
-        stack4: {},
-        stack5: {},
-        stack6: {},
-        stack7: {},
-        stack8: {},
-        stack9: {},
-        stack10: {}
+        '1NestedStack': {},
+        '2NestedStack': {},
+        '3NestedStack': {},
+        '4NestedStack': {},
+        '5NestedStack': {},
+        '6NestedStack': {},
+        '7NestedStack': {},
+        '8NestedStack': {},
+        '9NestedStack': {},
+        '10NestedStack': {}
       }
     }
   });
@@ -85,12 +86,12 @@ test('creates a single nested stack chain if enabled without parallel deployment
 
 test('keeps already existing dependsOn directives', t => {
   t.context.config.stackSequence = true;
-  t.context.rootTemplate.Resources.stack9.DependsOn = ['Foo'];
+  t.context.rootTemplate.Resources['9NestedStack'].DependsOn = ['Foo'];
 
   t.context.sequenceStacks();
 
   t.is(9, countDependsOn(t.context.rootTemplate.Resources));
-  t.is(2, t.context.rootTemplate.Resources.stack9.DependsOn.length);
+  t.is(2, t.context.rootTemplate.Resources['9NestedStack'].DependsOn.length);
   t.true(doesNotBecomeCircular(t.context.rootTemplate.Resources));
 });
 
