@@ -9,6 +9,10 @@ const clone = function (object) {
   return JSON.parse(JSON.stringify(object));
 };
 
+const countDependsOn = function (resources) {
+  return Object.keys(resources).filter(resourceName => resources[resourceName].DependsOn).length
+};
+
 const doesNotBecomeCircular = function (resources) {
   const memo = {};
 
@@ -128,7 +132,7 @@ test('migrates resources in Nested Stacks and ', t => {
   t.context.plugin.config.perGroupFunction = true;
   t.context.plugin.config.nestedStackCount = 2;
   t.context.plugin.config.resourceParallelDeployments = 2;
-  t.plan(21);
+  t.plan(22);
 
   const migrationStrategy = new PerGroupFunction(t.context.plugin);
   const migrationResources = clone(require('./fixtures/per-group-function/migration-resources'));
@@ -139,5 +143,6 @@ test('migrates resources in Nested Stacks and ', t => {
     t.is(Boolean(migration), migrationResources[logicalId].Migrated);
   });
 
-  t.true(doesNotBecomeCircular(migrationResources, t));
+  t.is(countDependsOn(migrationResources), 13);
+  t.true(doesNotBecomeCircular(migrationResources));
 });

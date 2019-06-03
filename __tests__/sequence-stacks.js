@@ -8,7 +8,6 @@ const countDependsOn = function (resources) {
   return Object.keys(resources).filter(resourceName => resources[resourceName].DependsOn).length
 };
 
-
 const doesNotBecomeCircular = function (resources, t) {
   const memo = {};
 
