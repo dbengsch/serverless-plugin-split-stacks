@@ -3,4 +3,3 @@ coverage
 .serverless
 node_modules
 *.log
-.idea/
